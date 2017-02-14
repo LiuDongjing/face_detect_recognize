@@ -1,0 +1,10 @@
+*.jpg 
+*.exe
+*.avi
+*.yaml
+data/*
+PRJ2/x64/*
+x64/*
+OpenCV_demos/x64/*
+*.db
+*.opendb
