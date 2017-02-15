@@ -33,6 +33,12 @@
     <ClCompile Include="FisherFace.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="FaceReg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Collector.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FaceDetector.h">
@@ -48,6 +54,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="FisherFace.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="FaceReg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Collector.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

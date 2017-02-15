@@ -7,6 +7,8 @@
 #include "toolkits.h"
 #include "FaceDetector.h"
 #include "EigenFace.h"
+#include "FaceReg.h"
+#include "Collector.h"
 using namespace std;
 using namespace cv;
 using namespace face;
@@ -32,7 +34,38 @@ int main(int argc, char *argv[]) {
 		parser.printMessage();
 	}
 	if (parser.has("train")) {
-		train(parser);
+		string traindir = parser.get<string>("train_dir");
+		string testdir = parser.get<string>("test_dir");
+		string modelPath = parser.get<string>("model");
+		string method = parser.get<string>("method");
+		
+		int w = parser.get<int>("w");
+		int h = parser.get<int>("h");
+		int num = parser.get<int>("num");
+		double threshold = parser.get<double>("threshold");
+		if (!parser.check()) {
+			parser.printErrors();
+			return -1;
+		}
+		transform(method.begin(), method.end(), method.begin(), tolower);
+		FaceReg *model = nullptr;
+		if (method == "eigenface") {
+			model = new FaceReg(createEigenFaceRecognizer(), w, h);
+		}
+		else if (method == "lbph") {
+			model = new FaceReg(createLBPHFaceRecognizer(), w, h);
+		}
+		else if (method == "fisher") {
+			//暂时不能用，会train时会报错，未经处理的异常
+			model = new FaceReg(createFisherFaceRecognizer(), w, h);
+		}
+		else {
+			cerr << "不支持的方法: " << method << endl;
+			return -1;
+		}
+		model->train(traindir);
+		model->test(testdir);
+		model->save(modelPath);
 		return 0;
 	}
 	string facePath = parser.get<string>("face");
@@ -71,37 +104,40 @@ int main(int argc, char *argv[]) {
 		cerr << "Load face detect model failed!" << endl;
 		return 0;
 	}
-	FaceRegBase *model = nullptr;
+	FaceReg *model = nullptr;
 	if (method == "eigenface") {
-		model = new EigenFace();
+		model = new FaceReg(createEigenFaceRecognizer(), w, h);
+	}
+	else if (method == "lbph") {
+		model = new FaceReg(createLBPHFaceRecognizer(), w, h);
+	}
+	else if (method == "fisher") {
+		//暂时不能用，会train时会报错，未经处理的异常
+		model = new FaceReg(createFisherFaceRecognizer(), w, h);
+	}
+	else {
+		cerr << "不支持的方法: " << method << endl;
+		return -1;
 	}
 	model->load(modelPath);
-
-	vector<string> label2name, sample2path;
-	vector<int> sample2label = model->getLabels();
-	if (!configure(confPath, label2name, sample2path)) {
-		cout << "Configure failed!" << endl;
-		return 0;
-	}
 	Mat frame;
 	cap >> frame;
 	namedWindow("camera");
+	Collector cc = Collector("face_database.yaml");
 	while (!frame.empty()) {
 		vector<Mat> aligned;
 		vector<Rect> pos;
 		if (fd.getFaceRect(frame, pos, &aligned)) {
 			int label, sampleNum;
 			double dist;
-			label = model->predict(aligned[0], sampleNum, dist);
-			string name;
 			Mat prof;
-			if (label < 0) {
+			string name = model->getMostSimilar(aligned[0], prof);
+			
+			if (name == "") {
 				name = "unknown";
 				mark(frame, pos[0], name, prof, false);
 			}
 			else {
-				name = label2name[label];
-				prof = imread(sample2path[sampleNum]);
 				mark(frame, pos[0], name, prof);
 			}
 			if (rec)
