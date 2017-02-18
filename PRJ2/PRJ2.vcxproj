@@ -159,6 +159,7 @@
     <ClCompile Include="FaceRegBase.cpp" />
     <ClCompile Include="FisherFace.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MyLBPHFace.cpp" />
     <ClCompile Include="toolkits.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -168,6 +169,7 @@
     <ClInclude Include="FaceReg.h" />
     <ClInclude Include="FaceRegBase.h" />
     <ClInclude Include="FisherFace.h" />
+    <ClInclude Include="MyLBPHFace.h" />
     <ClInclude Include="toolkits.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

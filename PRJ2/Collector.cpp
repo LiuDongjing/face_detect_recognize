@@ -22,7 +22,7 @@ int Collector::getMostSimilar(Mat &e) {
 	vector<int> index;
 	sort(dists, index);
 	e = facedb[index[0]].clone();
-	return index[0];
+	return labels[index[0]];
 }
 vector<double> &Collector::getDists() {
 	return dists;

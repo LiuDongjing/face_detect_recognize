@@ -9,6 +9,7 @@
 #include "EigenFace.h"
 #include "FaceReg.h"
 #include "Collector.h"
+#include "MyLBPHFace.h"
 using namespace std;
 using namespace cv;
 using namespace face;
@@ -56,8 +57,10 @@ int main(int argc, char *argv[]) {
 			model = new FaceReg(createLBPHFaceRecognizer(), w, h);
 		}
 		else if (method == "fisher") {
-			//暂时不能用，会train时会报错，未经处理的异常
 			model = new FaceReg(createFisherFaceRecognizer(), w, h);
+		}
+		else if (method == "mylbph") {
+			model = new FaceReg(createMyLBPHFaceRecognizer(), w, h);
 		}
 		else {
 			cerr << "不支持的方法: " << method << endl;
@@ -112,8 +115,10 @@ int main(int argc, char *argv[]) {
 		model = new FaceReg(createLBPHFaceRecognizer(), w, h);
 	}
 	else if (method == "fisher") {
-		//暂时不能用，会train时会报错，未经处理的异常
 		model = new FaceReg(createFisherFaceRecognizer(), w, h);
+	}
+	else if (method == "mylbph") {
+		model = new FaceReg(createMyLBPHFaceRecognizer(), w, h);
 	}
 	else {
 		cerr << "不支持的方法: " << method << endl;
@@ -131,15 +136,10 @@ int main(int argc, char *argv[]) {
 			int label, sampleNum;
 			double dist;
 			Mat prof;
+
+			//此处返回的名字一定是有效的
 			string name = model->getMostSimilar(aligned[0], prof);
-			
-			if (name == "") {
-				name = "unknown";
-				mark(frame, pos[0], name, prof, false);
-			}
-			else {
-				mark(frame, pos[0], name, prof);
-			}
+			mark(frame, pos[0], name, prof);
 			if (rec)
 				for(int i = 0; i < 60; i++)
 					record << frame;
