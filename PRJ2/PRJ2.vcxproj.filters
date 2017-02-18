@@ -24,19 +24,13 @@
     <ClCompile Include="toolkits.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="EigenFace.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="FaceRegBase.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="FisherFace.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="FaceReg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Collector.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MyLBPHFace.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,19 +41,13 @@
     <ClInclude Include="toolkits.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="FaceRegBase.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="EigenFace.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="FisherFace.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="FaceReg.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Collector.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MyLBPHFace.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

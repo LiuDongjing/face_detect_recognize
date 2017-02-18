@@ -6,7 +6,6 @@
 #include "FaceDetector.h"
 #include "toolkits.h"
 #include "FaceDetector.h"
-#include "EigenFace.h"
 #include "FaceReg.h"
 #include "Collector.h"
 #include "MyLBPHFace.h"
