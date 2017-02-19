@@ -32,11 +32,13 @@ void MyLBPHFace::load(const FileStorage &fs) {
 
 void MyLBPHFace::predict(InputArray src, Ptr<PredictCollector> collector) const{
 	Mat img;
-	src.copyTo(img);
-	Mat vec(1, nX*nY * 256, CV_32FC1, Scalar(0));
-	getDescVec(img, vec);
+	src.copyTo(img);//避免修改原来的图像
+	Mat vec(1, nX*nY * 256, CV_32FC1, Scalar(0));//分配好特征向量的内存并全部初始化为0
+	getDescVec(img, vec);//获取待预测人脸的特征向量
 	for (int i = 0; i < lab.size(); i++) {
-		Mat t = desc(Rect(0, i, nX*nY * 256, 1));
+		Mat t = desc(Rect(0, i, nX*nY * 256, 1));//遍历库中每张人脸的特征向量，每个特征向量占一行
+		
+		//传入每张人脸的label及对应的欧式距离
 		collector->collect(lab[i], norm(vec, t));
 	}
 }
@@ -57,6 +59,9 @@ void MyLBPHFace::save(FileStorage &fs) const{
 void MyLBPHFace::train(InputArrayOfArrays src, InputArray labels) {
 	vector<Mat> imgs;
 
+	/*将labels保存到lab中并未labInfo分配内存
+	  注意lab是每张人脸的标签，而labInfo是每
+	  个标签的信息，两者的大小并不一致*/
 	{
 		Mat tmp = labels.getMat();//vector<int> 转成Mat是1xN，vs显示的时候是1xNx1，第一个是通道数
 		int ml = 0;
@@ -72,10 +77,13 @@ void MyLBPHFace::train(InputArrayOfArrays src, InputArray labels) {
 	assert(imgs.size() > 0);
 	assert(imgs.size() == labels.total());
 	int row = imgs[0].rows, col = imgs[0].cols;
+
 	//每个样本图片的特征向量占一行
-	desc = Mat(imgs.size(), nX*nY*256, CV_32FC1, Scalar(0));
+	desc = Mat(imgs.size(), nX*nY*256, CV_32FC1, Scalar(0));//分配内存并全部初始化为0
 	for (int i = 0; i < imgs.size(); i++) {
 		assert(imgs[i].rows == row && imgs[i].cols == col);
+		
+		//计算库中人脸的特征向量
 		getDescVec(imgs[i], desc(Rect(0, i, nX*nY*256, 1)));
 	}
 }
@@ -101,12 +109,17 @@ void MyLBPHFace::getDescVec(Mat &img, Mat &vec) const{
 		for (int j = 0; j < img.rows; j += iy) {
 			int w = (i + ix) < img.cols ? ix : img.cols - i;
 			int h = (j + iy) < img.rows ? iy : img.rows - j;
+			//分别计算每个图像区域的直方图
 			hist(img(Rect(i, j, w, h)), vec(Rect(offset, 0, 256, 1)));
 			offset += 256;
 		}
 	}
 }
 void MyLBPHFace::encode(Mat &img) const{
+/* 邻居的顺序如下
+  701
+  6c2
+  543*/
 	int xs[8] = { 0, 1, 1, 1, 0, -1, -1, -1 };
 	int ys[8] = { -1, -1, 0, 1, 1, 1, 0, -1 };
 	Mat tmp = img.clone();
@@ -116,6 +129,7 @@ void MyLBPHFace::encode(Mat &img) const{
 			for (int z = 0; z < 8; z++) {
 				int x = i + xs[z];
 				int y = j + ys[z];
+				//超出图像区域视为0
 				if (x < 0 || x >= tmp.rows || y < 0 || y >= tmp.cols) continue;
 				if (tmp.at<uint8_t>(x, y) >= tmp.at<uint8_t>(i, j))
 					c += 1 << z;

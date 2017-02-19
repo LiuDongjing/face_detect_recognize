@@ -12,7 +12,7 @@ bool FaceDetector::load(string facePath, string eyePath) {
 	if (face.load(facePath) && eye.load(eyePath)) {
 		return true;
 	}
-	cerr << "Load the detection model failed!" << endl;
+	cerr << "无法加载检测模型!" << endl;
 	return false;
 }
 void FaceDetector::detect(CascadeClassifier &model, Mat &grayImg, vector<Rect> &result,
@@ -20,58 +20,58 @@ void FaceDetector::detect(CascadeClassifier &model, Mat &grayImg, vector<Rect> &
 	Size maxSize) {
 	model.detectMultiScale(grayImg, result, scale, minNeibor, CV_HAAR_SCALE_IMAGE, minSize, maxSize);
 }
-bool FaceDetector::getFaceRect(Mat &img, vector<Rect> &result, vector<Mat> *alignedFace, size_t len) {
+bool FaceDetector::getFaceRect(Mat &img, vector<Rect> &result, 
+	vector<Mat> &aligned, size_t len) {
 	Mat gray;
 	cvtColor(img, gray, COLOR_BGR2GRAY);
-	equalizeHist(gray, gray);
+	equalizeHist(gray, gray);//增加对比度
 	detect(face, gray, result, 1.5, 3, Size(gray.cols * 0.1, gray.rows * 0.1));
 	if(result.size() > len)
-		result.erase(result.begin() + len);
-	if (alignedFace != nullptr) {
-		vector<Mat> &aligned = *alignedFace; 
-		vector<Rect> eyePos;
-		for (int i = 0; i < result.size(); i++) {
-			eyePos.clear();
-			gray = gray(result[i]);
-			detect(eye, gray, eyePos, 1.1, 3,
-				Size(), Size(result[i].width * 0.4, result[i].height * 0.4));
-			if (eyePos.size() < 2) {
-				cerr << "Warning: eye detection failed!" << endl;
-				return false;
-			}
-			Point2f pos0(eyePos[0].x + eyePos[0].width / 2.0,
-				eyePos[0].y + eyePos[0].height / 2.0);
-			Point2f pos1(eyePos[1].x + eyePos[1].width / 2.0,
-				eyePos[1].y + eyePos[1].height / 2.0);
+		result.erase(result.begin() + len);//最多只检测len个对象
+	vector<Rect> eyePos;
+	for (int i = 0; i < result.size(); i++) {
+		eyePos.clear();
 
-			rectangle(img, eyePos[0] + Point(result[i].x, result[i].y), Scalar(0, 0, 255));
-			rectangle(img, eyePos[1] + Point(result[i].x, result[i].y), Scalar(0, 0, 255));
-
-			Point2f cen = (pos0 + pos1) / 2;
-			Point2f dir = pos0 - cen; 
-			double r = sqrt((cen.x - pos0.x)*(cen.x - pos0.x)
-				+ (cen.y - pos0.y)*(cen.y - pos0.y));
-			double cosv = dir.ddot(Point2f(1, 0)) / sqrt(dir.x * dir.x + dir.y * dir.y);
-			if (abs(cosv - 1) < 1e-9) {
-				aligned.push_back(gray.clone());
-				continue;
-			}
-			double theta = acos(cosv) * 180 / PI;
-			if (theta > 90)
-				theta = 180 - theta;
-			bool b0 = cosv > 0, b1 = dir.y > 0;
-			if (b0 && !b1 || !b0 && b1)
-				theta = -theta;
-			Mat m = getRotationMatrix2D(cen, theta, 1);
-			Mat rotated;
-			warpAffine(gray, rotated, m, Size(gray.cols, gray.rows));
-			
-			Rect rect = cropFace(rotated, cen, r);
-			aligned.push_back(rotated);
-			drawCrop(img, RotatedRect(Point(result[i].x + rect.x + rect.width / 2,
-				result[i].y + rect.y + rect.height / 2),
-				rect.size(), theta));
+		//在人脸区域中检测人眼
+		gray = gray(result[i]);
+		detect(eye, gray, eyePos, 1.1, 3,
+			Size(), Size(result[i].width * 0.4, result[i].height * 0.4));
+		if (eyePos.size() < 2) {
+			clog << "警告: 未检测到人眼!" << endl;
+			return false;
 		}
+		Point2f pos0(eyePos[0].x + eyePos[0].width / 2.0,
+			eyePos[0].y + eyePos[0].height / 2.0);
+		Point2f pos1(eyePos[1].x + eyePos[1].width / 2.0,
+			eyePos[1].y + eyePos[1].height / 2.0);
+
+		//框出双眼
+		rectangle(img, eyePos[0] + Point(result[i].x, result[i].y), Scalar(0, 0, 255));
+		rectangle(img, eyePos[1] + Point(result[i].x, result[i].y), Scalar(0, 0, 255));
+
+		Point2f cen = (pos0 + pos1) / 2;
+		Point2f dir = pos0 - cen; 
+		double r = sqrt((cen.x - pos0.x)*(cen.x - pos0.x)
+			+ (cen.y - pos0.y)*(cen.y - pos0.y));//双眼间距的一半
+
+		//计算双眼所在直线与水平线的夹角
+		double cosv = dir.ddot(Point2f(1, 0)) / sqrt(dir.x * dir.x + dir.y * dir.y);
+		double theta = acos(cosv) * 180 / PI;
+		if (theta > 90)
+			theta = 180 - theta;
+		bool b0 = cosv > 0, b1 = dir.y > 0;
+		if (b0 && !b1 || !b0 && b1)
+			theta = -theta;
+		Mat m = getRotationMatrix2D(cen, theta, 1);
+		Mat rotated;
+		//将人脸旋转至水平
+		warpAffine(gray, rotated, m, Size(gray.cols, gray.rows));
+		//裁剪人脸并画出
+		Rect rect = cropFace(rotated, cen, r);
+		aligned.push_back(rotated);
+		drawCrop(img, RotatedRect(Point(result[i].x + rect.x + rect.width / 2,
+			result[i].y + rect.y + rect.height / 2),
+			rect.size(), theta));
 	}
 	return result.size() > 0;
 }

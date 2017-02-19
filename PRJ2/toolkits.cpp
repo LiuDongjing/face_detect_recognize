@@ -8,20 +8,10 @@ namespace fs = std::experimental::filesystem;
 using namespace fs;
 using namespace face;
 
-void centerText(Mat &img, string info, Point o, double scale = 1, Scalar color = Scalar(0, 0, 255), int font = FONT_HERSHEY_SIMPLEX);
-bool loadTestData(string path, vector<Mat> &image, vector<string> &label) {
-	for (auto& p : recursive_directory_iterator(path)) {
-		string ext = p.path().extension().string();
-		string name = p.path().stem().string();
-		if (ext != ".jpg" && ext != ".jpeg"
-			&& ext != ".png" && ext != ".pgm")
-			continue;
-		name = name.substr(0, name.rfind('_'));
-		image.push_back(imread(p.path().string(), IMREAD_GRAYSCALE));
-		label.push_back(name);
-	}
-	return true;
-}
+//文本居中显示
+void centerText(Mat &img, string info, Point o, double scale = 1, 
+	Scalar color = Scalar(0, 0, 255), int font = FONT_HERSHEY_SIMPLEX);
+
 void mark(Mat &panel, Rect reg, string title, Mat &mini, bool draw) {
 	rectangle(panel, Point(reg.x, reg.y), Point(reg.x + reg.width,
 		reg.y + reg.height), Scalar(0, 0, 255));
@@ -45,19 +35,15 @@ void mark(Mat &panel, Rect reg, string title, Mat &mini, bool draw) {
 			roi.height), Scalar(0, 0, 255));
 	}
 }
-void preprocess(Mat &img, int w, int h, bool cvt) {
+void preprocess(Mat &img, int w, int h) {
 	if(img.channels() > 1)
 		cvtColor(img, img, CV_BGR2GRAY);
 	if(img.cols != w || img.rows != h)
 		resize(img, img, Size(w, h));
-	//GaussianBlur(img, img, Size(3, 3), 0, 0, BORDER_DEFAULT);
-	if (cvt) {
-		img = img.reshape(1, 1);
-		img.convertTo(img, CV_64FC1);
-	}
 }
 void sort(vector<double> &data, vector<int>& index, bool asc)
 {
+	//采用的是冒泡排序算法
 	index.clear();
 	for (int i = 0; i < data.size(); i++) index.push_back(i);
 	int ext;
@@ -79,11 +65,8 @@ void drawCMC(vector<float> &data, Mat &img) {
 	float by = data[0];
 	float dy = (SZ-1) / (1 - by);
 	Point p0(BW, BW + SZ - 1);
-	arrowedLine(win, Point(BW - 10, BW + SZ - 1), Point(SZ + 2*BW - 10, BW + SZ - 1), Scalar(255, 255, 255), 1, 8, 0, 0.02);
-	//line(win, Point(SZ + 10 - 20, BW + SZ - 1 + 10), Point(SZ + 10, BW + SZ - 1), Scalar(255, 0, 0));
-	
+	arrowedLine(win, Point(BW - 10, BW + SZ - 1), Point(SZ + 2*BW - 10, BW + SZ - 1), Scalar(255, 255, 255), 1, 8, 0, 0.02);	
 	arrowedLine(win, Point(BW, BW + SZ - 1 + 10), Point(BW, 10), Scalar(255, 255, 255), 1, 8, 0, 0.02);
-	//line(win, Point(BW, BW - 10), Point(BW - 10, BW - 10 + 20), Scalar(255, 0, 0));
 	for (int i = 1; i <= 10; i++) {
 		Point p1(BW + i*d, BW + round(SZ -1 - (data[i - 1] - by) * dy));
 		circle(win, p1, 5, Scalar(0, 255, 0));
