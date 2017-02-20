@@ -24,8 +24,8 @@ private:
 		double scale = 1.5, int minNeibor = 3, Size minSize = Size(5, 5), 
 		Size maxSize = Size());
 
-	/*人脸img绕双眼中心center旋转至水平后，按双眼间距一半r按比例裁剪人脸区域
-	  具体的比例参考private成员变量*/
+	/*人脸img绕双眼中心center旋转至水平后，按双眼间距一半r按比例
+	裁剪人脸区域;具体的比例参考private成员变量*/
 	Rect cropFace(Mat &img, Point center, double r);
 
 	/*在img上框出裁剪后人脸未旋转前的位置*/

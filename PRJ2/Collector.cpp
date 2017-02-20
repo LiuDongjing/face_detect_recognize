@@ -25,7 +25,9 @@ int Collector::getMostSimilar(Mat &e) {
 	vector<int> index;
 	//dists从小到大排列，index返回的是排序后的每个元素在原来dists数组的位置
 	sort(dists, index);
+	//库中与之最相似的人脸
 	e = facedb[index[0]].clone();
+	//返回最相似人脸的标签
 	return labels[index[0]];
 }
 vector<double> &Collector::getDists() {

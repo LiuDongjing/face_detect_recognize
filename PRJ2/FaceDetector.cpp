@@ -54,21 +54,26 @@ bool FaceDetector::getFaceRect(Mat &img, vector<Rect> &result,
 		double r = sqrt((cen.x - pos0.x)*(cen.x - pos0.x)
 			+ (cen.y - pos0.y)*(cen.y - pos0.y));//双眼间距的一半
 
-		//计算双眼所在直线与水平线的夹角
-		double cosv = dir.ddot(Point2f(1, 0)) / sqrt(dir.x * dir.x + dir.y * dir.y);
+		//计算双眼所在直线与水平线的夹角,角度制
+		double cosv = dir.ddot(Point2f(1, 0)) / 
+			sqrt(dir.x * dir.x + dir.y * dir.y);
 		double theta = acos(cosv) * 180 / PI;
+		/*旋转不超过90度，图像的左边高，逆时针旋转；
+		右边高，顺时针旋转*/
 		if (theta > 90)
 			theta = 180 - theta;
 		bool b0 = cosv > 0, b1 = dir.y > 0;
 		if (b0 && !b1 || !b0 && b1)
-			theta = -theta;
+			theta = -theta;//保证旋转方向正确
+		/*将人脸绕双眼中点旋转至水平；theta为正，
+		逆时针旋转，为负，顺时针旋转*/
 		Mat m = getRotationMatrix2D(cen, theta, 1);
 		Mat rotated;
-		//将人脸旋转至水平
 		warpAffine(gray, rotated, m, Size(gray.cols, gray.rows));
-		//裁剪人脸并画出
+		//裁剪人脸
 		Rect rect = cropFace(rotated, cen, r);
 		aligned.push_back(rotated);
+		//画出裁剪区域的位置
 		drawCrop(img, RotatedRect(Point(result[i].x + rect.x + rect.width / 2,
 			result[i].y + rect.y + rect.height / 2),
 			rect.size(), theta));

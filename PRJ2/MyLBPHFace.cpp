@@ -36,7 +36,8 @@ void MyLBPHFace::predict(InputArray src, Ptr<PredictCollector> collector) const{
 	Mat vec(1, nX*nY * 256, CV_32FC1, Scalar(0));//分配好特征向量的内存并全部初始化为0
 	getDescVec(img, vec);//获取待预测人脸的特征向量
 	for (int i = 0; i < lab.size(); i++) {
-		Mat t = desc(Rect(0, i, nX*nY * 256, 1));//遍历库中每张人脸的特征向量，每个特征向量占一行
+		//遍历库中每张人脸的特征向量，每个特征向量占一行
+		Mat t = desc(Rect(0, i, nX*nY * 256, 1));
 		
 		//传入每张人脸的label及对应的欧式距离
 		collector->collect(lab[i], norm(vec, t));
@@ -63,7 +64,8 @@ void MyLBPHFace::train(InputArrayOfArrays src, InputArray labels) {
 	  注意lab是每张人脸的标签，而labInfo是每
 	  个标签的信息，两者的大小并不一致*/
 	{
-		Mat tmp = labels.getMat();//vector<int> 转成Mat是1xN，vs显示的时候是1xNx1，第一个是通道数
+		//vector<int> 转成Mat是1xN，vs显示的时候是1xNx1，第一个是通道数
+		Mat tmp = labels.getMat();
 		int ml = 0;
 		for (int i = 0; i < tmp.total(); i++)
 		{
@@ -79,7 +81,8 @@ void MyLBPHFace::train(InputArrayOfArrays src, InputArray labels) {
 	int row = imgs[0].rows, col = imgs[0].cols;
 
 	//每个样本图片的特征向量占一行
-	desc = Mat(imgs.size(), nX*nY*256, CV_32FC1, Scalar(0));//分配内存并全部初始化为0
+	//分配内存并全部初始化为0
+	desc = Mat(imgs.size(), nX*nY*256, CV_32FC1, Scalar(0));
 	for (int i = 0; i < imgs.size(); i++) {
 		assert(imgs[i].rows == row && imgs[i].cols == col);
 		
